@@ -6,6 +6,7 @@ import (
 	"go-saas-api/internal/config"
 	"go-saas-api/internal/database"
 	"go-saas-api/internal/middleware"
+	"go-saas-api/internal/place"
 	"go-saas-api/internal/product"
 	"go-saas-api/internal/user"
 
@@ -44,6 +45,7 @@ func main() {
 	// Setup modules
 	setupUserModule(r, db, v, cfg.JWTSecret, authMW)
 	setupProductModule(r, db, v, authMW)
+	setupPlaceModule(r, db, v, authMW)
 
 	// Start server
 	log.Printf("🚀 Server running on port %s", cfg.Port)
@@ -64,4 +66,11 @@ func setupProductModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, authM
 	service := product.NewService(repo)
 	handler := product.NewHandler(service, v)
 	product.RegisterRoutes(r, handler, authMW)
+}
+
+func setupPlaceModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, authMW *middleware.AuthMiddleware) {
+	repo := place.NewRepository(db)
+	service := place.NewService(repo)
+	handler := place.NewHandler(service, v)
+	place.RegisterRoutes(r, handler, authMW)
 }
