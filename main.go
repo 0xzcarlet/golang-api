@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go-saas-api/product"
+	"go-saas-api/user" // ← tambahkan ini
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -46,9 +47,15 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
+	// Product module
 	repo := product.NewRepo(db)
 	handler := product.NewHandler(repo, v)
 	product.RegisterRoutes(r, handler)
+
+	// User module (Authentication)
+	userRepo := user.NewRepo(db)
+	userHandler := user.NewHandler(userRepo, v)
+	user.RegisterRoutes(r, userHandler)
 
 	log.Println("server running on :" + port)
 	log.Fatal(r.Run(":" + port))

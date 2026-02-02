@@ -1,0 +1,67 @@
+package main
+
+import (
+	"log"
+
+	"go-saas-api/internal/config"
+	"go-saas-api/internal/database"
+	"go-saas-api/internal/middleware"
+	"go-saas-api/internal/product"
+	"go-saas-api/internal/user"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+)
+
+func main() {
+	// Load configuration
+	cfg := config.Load()
+
+	// Setup database connection
+	db, err := database.NewConnection(cfg.DBDsn)
+	if err != nil {
+		log.Fatal("database connection failed:", err)
+	}
+	defer db.Close()
+	log.Println("✅ Database connected")
+
+	// Setup validator
+	v := validator.New()
+
+	// Setup middleware
+	authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
+
+	// Setup Gin router
+	r := gin.New()
+	r.Use(gin.Logger(), gin.Recovery())
+
+	// Health check endpoint
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
+	// Setup modules
+	setupUserModule(r, db, v, cfg.JWTSecret, authMW)
+	setupProductModule(r, db, v, authMW)
+
+	// Start server
+	log.Printf("🚀 Server running on port %s", cfg.Port)
+	if err := r.Run(":" + cfg.Port); err != nil {
+		log.Fatal("server failed to start:", err)
+	}
+}
+
+func setupUserModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, jwtSecret string, authMW *middleware.AuthMiddleware) {
+	repo := user.NewRepository(db)
+	service := user.NewService(repo, jwtSecret)
+	handler := user.NewHandler(service, v)
+	user.RegisterRoutes(r, handler, authMW)
+}
+
+func setupProductModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, authMW *middleware.AuthMiddleware) {
+	repo := product.NewRepository(db)
+	service := product.NewService(repo)
+	handler := product.NewHandler(service, v)
+	product.RegisterRoutes(r, handler, authMW)
+}
