@@ -17,6 +17,10 @@ func NewService(repo *Repository) *Service {
 // Place Service Methods
 
 func (s *Service) CreatePlace(ctx context.Context, userID uint64, req CreatePlaceReq) (int64, error) {
+	// validate name
+	if req.Name == nil || *req.Name == "" {
+		return 0, errors.New("name is required")
+	}
 	return s.repo.CreatePlace(ctx, userID, req)
 }
 

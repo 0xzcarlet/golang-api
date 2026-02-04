@@ -5,7 +5,7 @@ import "time"
 // Place DTOs
 
 type CreatePlaceReq struct {
-	Name        *string    `json:"name" validate:"omitempty,max=255"`
+	Name        *string    `json:"name" validate:"required,max=255"`
 	Link        *string    `json:"link" validate:"omitempty,max=255"`
 	LinkType    *int       `json:"link_type" validate:"omitempty,min=0"`
 	Description *string    `json:"description" validate:"omitempty"`
