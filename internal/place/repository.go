@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"go-saas-api/pkg/customtime"
 	"strings"
 	"time"
 
@@ -210,10 +211,10 @@ func ToPlaceResponse(p *Place) PlaceResponse {
 		resp.Description = &p.Description.String
 	}
 	if p.GoAt.Valid {
-		resp.GoAt = &p.GoAt.Time
+		resp.GoAt = customtime.NewDate(p.GoAt.Time)
 	}
 	if p.GoAtTime.Valid {
-		resp.GoAtTime = &p.GoAtTime.Time
+		resp.GoAtTime = customtime.NewDateTime(p.GoAtTime.Time)
 	}
 	if p.Status.Valid {
 		status := int(p.Status.Int32)

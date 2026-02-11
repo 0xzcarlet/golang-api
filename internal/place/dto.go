@@ -1,41 +1,43 @@
 package place
 
-import "time"
+import (
+	"go-saas-api/pkg/customtime"
+)
 
 // Place DTOs
 
 type CreatePlaceReq struct {
-	Name        *string    `json:"name" validate:"required,max=255"`
-	Link        *string    `json:"link" validate:"omitempty,max=255"`
-	LinkType    *int       `json:"link_type" validate:"omitempty,min=0"`
-	Description *string    `json:"description" validate:"omitempty"`
-	GoAt        *time.Time `json:"go_at" validate:"omitempty"`
-	GoAtTime    *time.Time `json:"go_at_time" validate:"omitempty"`
-	Status      *int       `json:"status" validate:"omitempty,min=0"`
+	Name        *string              `json:"name" validate:"required,max=255"`
+	Link        *string              `json:"link" validate:"omitempty,max=255"`
+	LinkType    *int                 `json:"link_type" validate:"omitempty,min=0"`
+	Description *string              `json:"description" validate:"omitempty"`
+	GoAt        *customtime.Date     `json:"go_at" validate:"omitempty"`
+	GoAtTime    *customtime.DateTime `json:"go_at_time" validate:"omitempty"`
+	Status      *int                 `json:"status" validate:"omitempty,min=0"`
 }
 
 type UpdatePlaceReq struct {
-	Name        *string    `json:"name" validate:"omitempty,max=255"`
-	Link        *string    `json:"link" validate:"omitempty,max=255"`
-	LinkType    *int       `json:"link_type" validate:"omitempty,min=0"`
-	Description *string    `json:"description" validate:"omitempty"`
-	GoAt        *time.Time `json:"go_at" validate:"omitempty"`
-	GoAtTime    *time.Time `json:"go_at_time" validate:"omitempty"`
-	Status      *int       `json:"status" validate:"omitempty,min=0"`
+	Name        *string              `json:"name" validate:"omitempty,max=255"`
+	Link        *string              `json:"link" validate:"omitempty,max=255"`
+	LinkType    *int                 `json:"link_type" validate:"omitempty,min=0"`
+	Description *string              `json:"description" validate:"omitempty"`
+	GoAt        *customtime.Date     `json:"go_at" validate:"omitempty"`
+	GoAtTime    *customtime.DateTime `json:"go_at_time" validate:"omitempty"`
+	Status      *int                 `json:"status" validate:"omitempty,min=0"`
 }
 
 type PlaceResponse struct {
-	ID          uint64     `json:"id"`
-	UserID      uint64     `json:"user_id"`
-	Name        *string    `json:"name"`
-	Link        *string    `json:"link"`
-	LinkType    *int       `json:"link_type"`
-	Description *string    `json:"description"`
-	GoAt        *time.Time `json:"go_at"`
-	GoAtTime    *time.Time `json:"go_at_time"`
-	Status      *int       `json:"status"`
-	CreatedAt   string     `json:"created_at"`
-	UpdatedAt   string     `json:"updated_at"`
+	ID          uint64               `json:"id"`
+	UserID      uint64               `json:"user_id"`
+	Name        *string              `json:"name"`
+	Link        *string              `json:"link"`
+	LinkType    *int                 `json:"link_type"`
+	Description *string              `json:"description"`
+	GoAt        *customtime.Date     `json:"go_at"`
+	GoAtTime    *customtime.DateTime `json:"go_at_time"`
+	Status      *int                 `json:"status"`
+	CreatedAt   string               `json:"created_at"`
+	UpdatedAt   string               `json:"updated_at"`
 }
 
 // PlaceCategory DTOs
