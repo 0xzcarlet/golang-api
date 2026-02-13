@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func NewConnection(dsn string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("mysql", dsn)
+	db, err := sqlx.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

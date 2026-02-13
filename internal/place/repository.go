@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"fmt"
 	"go-saas-api/pkg/customtime"
 	"strings"
 	"time"
@@ -20,22 +21,23 @@ func NewRepository(db *sqlx.DB) *Repository {
 // Place Repository Methods
 
 func (r *Repository) CreatePlace(ctx context.Context, userID uint64, req CreatePlaceReq) (int64, error) {
-	res, err := r.db.ExecContext(ctx,
+	var id int64
+	err := r.db.QueryRowContext(ctx,
 		`INSERT INTO place (user_id, name, link, link_type, description, go_at, go_at_time, status) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
 		userID, req.Name, req.Link, req.LinkType, req.Description, req.GoAt, req.GoAtTime, req.Status,
-	)
+	).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
-	return res.LastInsertId()
+	return id, nil
 }
 
 func (r *Repository) ListPlaces(ctx context.Context, userID uint64, limit int) ([]Place, error) {
 	var items []Place
 	err := r.db.SelectContext(ctx, &items,
 		`SELECT id, user_id, name, link, link_type, description, go_at, go_at_time, status, created_at, updated_at 
-		FROM place WHERE user_id = ? ORDER BY id DESC LIMIT ?`,
+		FROM place WHERE user_id = $1 ORDER BY id DESC LIMIT $2`,
 		userID, limit,
 	)
 	return items, err
@@ -45,7 +47,7 @@ func (r *Repository) GetPlaceByID(ctx context.Context, id, userID uint64) (*Plac
 	var p Place
 	err := r.db.GetContext(ctx, &p,
 		`SELECT id, user_id, name, link, link_type, description, go_at, go_at_time, status, created_at, updated_at 
-		FROM place WHERE id = ? AND user_id = ?`,
+		FROM place WHERE id = $1 AND user_id = $2`,
 		id, userID,
 	)
 	if err != nil {
@@ -58,41 +60,49 @@ func (r *Repository) UpdatePlace(ctx context.Context, id, userID uint64, req Upd
 	q := "UPDATE place SET "
 	args := []any{}
 	sets := []string{}
+	paramIdx := 1
 
 	if req.Name != nil {
-		sets = append(sets, "name = ?")
+		sets = append(sets, fmt.Sprintf("name = $%d", paramIdx))
 		args = append(args, req.Name)
+		paramIdx++
 	}
 	if req.Link != nil {
-		sets = append(sets, "link = ?")
+		sets = append(sets, fmt.Sprintf("link = $%d", paramIdx))
 		args = append(args, req.Link)
+		paramIdx++
 	}
 	if req.LinkType != nil {
-		sets = append(sets, "link_type = ?")
+		sets = append(sets, fmt.Sprintf("link_type = $%d", paramIdx))
 		args = append(args, req.LinkType)
+		paramIdx++
 	}
 	if req.Description != nil {
-		sets = append(sets, "description = ?")
+		sets = append(sets, fmt.Sprintf("description = $%d", paramIdx))
 		args = append(args, req.Description)
+		paramIdx++
 	}
 	if req.GoAt != nil {
-		sets = append(sets, "go_at = ?")
+		sets = append(sets, fmt.Sprintf("go_at = $%d", paramIdx))
 		args = append(args, req.GoAt)
+		paramIdx++
 	}
 	if req.GoAtTime != nil {
-		sets = append(sets, "go_at_time = ?")
+		sets = append(sets, fmt.Sprintf("go_at_time = $%d", paramIdx))
 		args = append(args, req.GoAtTime)
+		paramIdx++
 	}
 	if req.Status != nil {
-		sets = append(sets, "status = ?")
+		sets = append(sets, fmt.Sprintf("status = $%d", paramIdx))
 		args = append(args, req.Status)
+		paramIdx++
 	}
 
 	if len(sets) == 0 {
 		return false, nil
 	}
 
-	q += strings.Join(sets, ", ") + " WHERE id = ? AND user_id = ?"
+	q += strings.Join(sets, ", ") + fmt.Sprintf(" WHERE id = $%d AND user_id = $%d", paramIdx, paramIdx+1)
 	args = append(args, id, userID)
 
 	res, err := r.db.ExecContext(ctx, q, args...)
@@ -108,7 +118,7 @@ func (r *Repository) UpdatePlace(ctx context.Context, id, userID uint64, req Upd
 }
 
 func (r *Repository) DeletePlace(ctx context.Context, id, userID uint64) (bool, error) {
-	res, err := r.db.ExecContext(ctx, `DELETE FROM place WHERE id = ? AND user_id = ?`, id, userID)
+	res, err := r.db.ExecContext(ctx, `DELETE FROM place WHERE id = $1 AND user_id = $2`, id, userID)
 	if err != nil {
 		return false, err
 	}
@@ -122,20 +132,21 @@ func (r *Repository) DeletePlace(ctx context.Context, id, userID uint64) (bool, 
 // PlaceCategory Repository Methods
 
 func (r *Repository) CreatePlaceCategory(ctx context.Context, userID uint64, name string) (int64, error) {
-	res, err := r.db.ExecContext(ctx,
-		`INSERT INTO place_category (user_id, name) VALUES (?, ?)`,
+	var id int64
+	err := r.db.QueryRowContext(ctx,
+		`INSERT INTO place_category (user_id, name) VALUES ($1, $2) RETURNING id`,
 		userID, name,
-	)
+	).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
-	return res.LastInsertId()
+	return id, nil
 }
 
 func (r *Repository) ListPlaceCategories(ctx context.Context, userID uint64, limit int) ([]PlaceCategory, error) {
 	var items []PlaceCategory
 	err := r.db.SelectContext(ctx, &items,
-		`SELECT id, user_id, name FROM place_category WHERE user_id = ? ORDER BY id DESC LIMIT ?`,
+		`SELECT id, user_id, name FROM place_category WHERE user_id = $1 ORDER BY id DESC LIMIT $2`,
 		userID, limit,
 	)
 	return items, err
@@ -144,7 +155,7 @@ func (r *Repository) ListPlaceCategories(ctx context.Context, userID uint64, lim
 func (r *Repository) GetPlaceCategoryByID(ctx context.Context, id uint, userID uint64) (*PlaceCategory, error) {
 	var pc PlaceCategory
 	err := r.db.GetContext(ctx, &pc,
-		`SELECT id, user_id, name FROM place_category WHERE id = ? AND user_id = ?`,
+		`SELECT id, user_id, name FROM place_category WHERE id = $1 AND user_id = $2`,
 		id, userID,
 	)
 	if err != nil {
@@ -159,7 +170,7 @@ func (r *Repository) UpdatePlaceCategory(ctx context.Context, id uint, userID ui
 	}
 
 	res, err := r.db.ExecContext(ctx,
-		`UPDATE place_category SET name = ? WHERE id = ? AND user_id = ?`,
+		`UPDATE place_category SET name = $1 WHERE id = $2 AND user_id = $3`,
 		*name, id, userID,
 	)
 	if err != nil {
@@ -175,7 +186,7 @@ func (r *Repository) UpdatePlaceCategory(ctx context.Context, id uint, userID ui
 
 func (r *Repository) DeletePlaceCategory(ctx context.Context, id uint, userID uint64) (bool, error) {
 	res, err := r.db.ExecContext(ctx,
-		`DELETE FROM place_category WHERE id = ? AND user_id = ?`,
+		`DELETE FROM place_category WHERE id = $1 AND user_id = $2`,
 		id, userID,
 	)
 	if err != nil {

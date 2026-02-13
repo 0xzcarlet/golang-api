@@ -7,7 +7,6 @@ import (
 	"go-saas-api/internal/database"
 	"go-saas-api/internal/middleware"
 	"go-saas-api/internal/place"
-	"go-saas-api/internal/product"
 	"go-saas-api/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -37,14 +36,8 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
-	// Health check endpoint
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
-
 	// Setup modules
 	setupUserModule(r, db, v, cfg.JWTSecret, authMW)
-	setupProductModule(r, db, v, authMW)
 	setupPlaceModule(r, db, v, authMW)
 
 	// Start server
@@ -59,13 +52,6 @@ func setupUserModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, jwtSecre
 	service := user.NewService(repo, jwtSecret)
 	handler := user.NewHandler(service, v)
 	user.RegisterRoutes(r, handler, authMW)
-}
-
-func setupProductModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, authMW *middleware.AuthMiddleware) {
-	repo := product.NewRepository(db)
-	service := product.NewService(repo)
-	handler := product.NewHandler(service, v)
-	product.RegisterRoutes(r, handler, authMW)
 }
 
 func setupPlaceModule(r *gin.Engine, db *sqlx.DB, v *validator.Validate, authMW *middleware.AuthMiddleware) {

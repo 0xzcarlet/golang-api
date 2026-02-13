@@ -34,4 +34,9 @@ deps: ## Download dependencies
 	@go mod download
 	@echo "✅ Dependencies downloaded"
 
-dev: tidy run ## Tidy dependencies and run in development mode
+dev: ## Run with hot-reload using Air
+	@echo "🔥 Running with hot-reload..."
+	@air
+
+air-init: ## Initialize Air configuration
+	@air init
